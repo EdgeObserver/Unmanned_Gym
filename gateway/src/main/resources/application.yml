@@ -1,0 +1,83 @@
+spring:
+  main:
+    web-application-type: reactive  # 显式声明（可选，自动识别）
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      server-addr: localhost:8848
+    gateway:
+      routes:
+        - id: UserRoute
+          uri: lb://UserService
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - RewritePath=/api/user/(?<segment>.*), /${segment}
+        - id: FaceRoute
+          uri: lb://FaceService
+          predicates:
+            - Path=/api/face/**
+          filters:
+            - RewritePath=/api/face/(?<segment>.*), /${segment}
+        - id: CountRoute
+          uri: lb://CountService
+          predicates:
+            - Path=/api/count/**
+          filters:
+            - RewritePath=/api/count/(?<segment>.*), /${segment}
+        - id: CountWsRoute
+          uri: lb://CountService
+          predicates:
+            - Path=/ws/**
+          filters:
+            - StripPrefix=0
+        - id: RecordRoute
+          uri: lb://RecordService
+          predicates:
+            - Path=/api/record/**
+          filters:
+            - RewritePath=/api/record/(?<segment>.*), /${segment}
+        - id: KnowledgeRoute
+          uri: lb://KnowledgeService
+          predicates:
+            - Path=/api/knowledge/**
+          filters:
+            - RewritePath=/api/knowledge/(?<segment>.*), /${segment}
+        - id: ResourceRoute
+          uri: lb://ResourceService
+          predicates:
+            - Path=/api/resource/**
+          filters:
+            - RewritePath=/api/resource/(?<segment>.*), /${segment}
+        - id: AssistantRoute
+          uri: lb://AssistantService
+          predicates:
+            - Path=/api/assistant/**
+          filters:
+            - RewritePath=/api/assistant/(?<segment>.*), /${segment}
+        - id: BookRoute
+          uri: lb://BookService
+          predicates:
+            - Path=/api/book/**
+          filters:
+            - RewritePath=/api/book/(?<segment>.*), /${segment}
+        - id: OrderRoute
+          uri: lb://OrderService
+          predicates:
+            - Path=/api/order/**
+          filters:
+            - RewritePath=/api/order/(?<segment>.*), /${segment}
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowed-methods: "*"
+            allowed-Headers: "*"
+            allow-credentials: true
+#      default-filters:
+#        - StripPrefix=1
+#localhost的默认端口，访问网关就不需要写端口
+server:
+  port: 80

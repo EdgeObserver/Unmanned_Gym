@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>颜色检测页</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            transition: background-color 0.3s;
+        }
+        #log {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div id="log">连接中...</div>
+
+<!-- SockJS + STOMP 客户端 -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+    const log = document.getElementById('log');
+
+    let lastColor = null;          // 记录上一次颜色
+
+    function setBg(color) {
+        if (color === lastColor) return; // 相同 → 什么都不做
+        lastColor = color;
+        document.body.style.backgroundColor = color;
+        log.innerText = `收到颜色：${color}`;
+    }
+
+    // 建立连接
+    const socket = new SockJS('http://localhost:80/ws');               // 与后端 Endpoint 对应
+    const stomp = Stomp.over(socket);
+    stomp.debug = null;                             // 关闭控制台 STOMP 调试
+
+    stomp.connect({}, frame => {
+        log.innerText = '已连接';
+        // 订阅广播
+        stomp.subscribe('/topic/color', msg => {
+            const body = JSON.parse(msg.body);
+            const color = body.color;                   // "red" | "green"
+            setBg(color);
+        });
+    }, err => {
+        log.innerText = '连接失败：' + err;
+    });
+
+    // 可选：点页面任意位置手动触发测试
+    document.body.addEventListener('click', () => {
+        if (stomp.connected) {
+            const testColor = Math.random() > 0.5 ? 'red' : 'green';
+            // 发到后端 /app/change 做测试（后端需有 @MessageMapping("/change")）
+            stomp.send('/app/change', {}, JSON.stringify({color: testColor}));
+        }
+    });
+</script>
+</body>
+</html>

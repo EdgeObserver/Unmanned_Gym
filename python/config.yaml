@@ -1,0 +1,12 @@
+face_data:
+  db_dir : D:\IdeaProjects\AttendanceSystem\data\face_cache
+  weight_path : D:/weights
+  bank_file_path: D:\IdeaProjects\AttendanceSystem\python\bank.pk
+face_detect:
+  in_url: http://localhost:80/api/face/check-in
+  out_url: http://localhost:80/api/face/check-out
+person_detect:
+  user : admin
+  pwd  : 414406
+  ip   : 192.168.0.165
+  port : 8554

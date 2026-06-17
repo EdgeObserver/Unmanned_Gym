@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/attendance_system
+    username: root
+    password: 4114
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+server:
+  port: 8080
+
+python:
+  face:
+    data_dir: D:\IdeaProjects\AttendanceSystem\src\main\resources\data\test_data
+    svPath : 0
+    url: http://localhost:5000   # Docker 内服务名，本地开发可改为 localhost:5000
+
+feign:
+  client:
+    config:
+      python-face:                # 对应 @FeignClient 的 name
+        connect-timeout: 10000    # 10 秒连接超时
+        read-timeout: 300000      # 5 分钟读超时（建库慢）
+        logger-level: full        # 调试用，打印完整请求响应
+
+aliyun:
+  oss:
+    endpoint:   YOUR_OSS_ENDPOINT
+    bucket:     YOUR_OSS_BUCKET_NAME
+    access-key: YOUR_ALIYUN_ACCESS_KEY_ID
+    secret-key: YOUR_ALIYUN_ACCESS_KEY_SECRET
+    dir-prefix: user_face/       # 头像统一目录

@@ -1,0 +1,136 @@
+@startuml AI助手服务类图
+
+title AI助手服务类图 (AI Assistant Service Class Diagram)
+
+' 设置样式
+skinparam backgroundColor #FEFEFE
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+skinparam packageStyle rectangle
+
+' Flask应用层
+package "Flask Application Layer" {
+    class App {
+        +talk(): Response
+        +talkStream(): Response
+        +register_to_nacos(): void
+        -NACOS_SERVER_ADDR: String
+        -SERVICE_NAME: String
+        -INSTANCE_IP: String
+        -INSTANCE_PORT: int
+    }
+    
+    class Main {
+        +ask_question_post(): Response
+        +ask_get(): Response
+    }
+}
+
+' AI连接器层
+package "AI Connector Layer" {
+    class AIConnector {
+        -api_key: String
+        -client: OpenAI
+        -model: String
+        +__init__()
+        +talk(question: str): dict
+        +talkStream(question: str): Generator
+    }
+}
+
+' 问答引擎层
+package "QA Engine Layer" {
+    class QAEngine {
+        +parse_question(question: str): dict
+        +answer_question(question: str): str
+        -MUSCLE_SYNONYMS: dict
+        -EQUIPMENT_SYNONYMS: dict
+        -DIFFICULTY_SYNONYMS: dict
+    }
+    
+    class TransCode {
+        +generate_report(): void
+        -client: OpenAI
+    }
+}
+
+' Neo4j驱动层
+package "Neo4j Driver Layer" {
+    class Neo4jConnection {
+        -driver: GraphDatabase.driver
+        +__init__(uri, user, password)
+        +close(): void
+        +query(query, parameters): list
+    }
+    
+    class Neo4jConn {
+        <<singleton>>
+        -instance: Neo4jConnection
+    }
+}
+
+' 外部服务
+package "External Services" {
+    class NacosClient {
+        <<Service Registry>>
+        +add_naming_instance(): void
+        +send_heartbeat(): void
+    }
+    
+    class OpenAIClient {
+        <<AI API>>
+        +chat.completions.create(): Completion
+    }
+    
+    class Neo4jDatabase {
+        <<Graph Database>>
+        +session.run(): Result
+    }
+}
+
+' 关系连接
+App --> AIConnector : uses
+App --> QAEngine : uses
+App --> Neo4jConn : uses
+App --> NacosClient : registers to
+
+Main --> QAEngine : uses
+
+AIConnector --> OpenAIClient : calls
+
+QAEngine --> Neo4jConn : queries
+
+Neo4jConn o-- Neo4jConnection : creates
+
+Neo4jConnection --> Neo4jDatabase : connects to
+
+TransCode --> OpenAIClient : calls
+
+note right of App
+  Flask应用作为入口
+  提供REST API接口
+  注册到Nacos服务发现
+end note
+
+note right of AIConnector
+  封装AI模型调用
+  支持流式和非流式响应
+  处理思考过程和回答
+end note
+
+note right of QAEngine
+  解析用户问题意图
+  构建Cypher查询
+  生成自然语言回答
+end note
+
+note right of Neo4jConnection
+  管理Neo4j数据库连接
+  执行图谱查询
+  返回结构化数据
+end note
+
+@enduml

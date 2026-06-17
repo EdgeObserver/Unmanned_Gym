@@ -1,0 +1,55 @@
+server:
+  port: 5150
+spring:
+  application:
+    name: FaceService
+  cloud:
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+  config:
+    import:
+      - nacos:FaceService.properties
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:unmanned_gym}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST:/}
+    listener:
+      simple:
+        acknowledge-mode: auto  # 手动确认
+        concurrency: 3
+        max-concurrency: 10
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+face:
+  port: ${FACE_SERVICE_PORT:5000}
+  python:
+    script-path: ${FACE_PYTHON_SCRIPT_PATH:D:\IdeaProjects\AttendanceSystem\python\FaceService.py}
+    service-url: ${FACE_SERVICE_URL:http://localhost:5000}
+  camera:
+    enabled: ${FACE_CAMERA_ENABLED:true}
+    device-id: ${FACE_CAMERA_DEVICE_ID:0}
+
+aliyun:
+  oss:
+    endpoint:   ${OSS_ENDPOINT}
+    bucket:     ${OSS_BUCKET_NAME}
+    access-key: ${ALIYUN_ACCESS_KEY_ID}
+    secret-key: ${ALIYUN_ACCESS_KEY_SECRET}
+    dir-prefix: ${OSS_DIR_PREFIX:user_face/}
+    illegal_dir-prefix: ${OSS_ILLEGAL_DIR_PREFIX:illegal_user_face/}
+    local-base: ${OSS_LOCAL_BASE:D:\IdeaProjects\AttendanceSystem\data\face_cache}

@@ -1,0 +1,40 @@
+server:
+  port: 5350
+spring:
+  application:
+    name: ResourceService
+  cloud:
+    nacos:
+      server-addr: localhost:8848
+  config:
+    import:
+      - nacos:ResourceService.properties
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/unmanned_gym
+    username: root
+    password: 4114
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
+aliyun:
+  oss:
+    endpoint:   YOUR_OSS_ENDPOINT
+    bucket:     YOUR_OSS_BUCKET_NAME
+    access-key: YOUR_ALIYUN_ACCESS_KEY_ID
+    secret-key: YOUR_ALIYUN_ACCESS_KEY_SECRET
+    dir-prefix: user_face/       # 头像统一目录
+    illegal_dir-prefix: illegal_user_face/
+    local-base: D:\IdeaProjects\AttendanceSystem\data\face_cache

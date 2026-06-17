@@ -1,0 +1,29 @@
+server:
+  port: 5300
+spring:
+  application:
+    name: BookService
+  cloud:
+    nacos:
+      server-addr: localhost:8848
+  config:
+    import:
+      - nacos:BookService.properties
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/unmanned_gym
+    username: root
+    password: 4114
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+

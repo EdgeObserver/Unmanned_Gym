@@ -1,0 +1,176 @@
+@startuml AI助手服务时序图
+
+title AI助手服务时序图 (AI Assistant Service Sequence Diagram)
+
+' 设置样式
+skinparam backgroundColor #FEFEFE
+skinparam actor {
+  BackgroundColor LightBlue
+}
+skinparam participant {
+  BackgroundColor LightYellow
+}
+skinparam database {
+  BackgroundColor LightGreen
+}
+
+actor "用户" as User
+participant "前端界面" as Frontend
+participant "Flask App" as FlaskApp
+participant "QA Engine" as QAEngine
+participant "Neo4j Driver" as Neo4jDriver
+participant "AI Connector" as AIConnector
+participant "OpenAI API" as OpenAIAPI
+database "Neo4j Database" as Neo4jDB
+participant "Nacos" as Nacos
+
+== 服务启动与注册 ==
+
+FlaskApp -> Nacos: register_to_nacos()
+activate FlaskApp
+activate Nacos
+Nacos --> FlaskApp: 注册成功
+FlaskApp -> Nacos: send_heartbeat() (每5秒)
+Nacos --> FlaskApp: 心跳确认
+deactivate Nacos
+deactivate FlaskApp
+
+== 非流式对话流程 (/talk) ==
+
+User -> Frontend: 输入健身问题
+Frontend -> FlaskApp: POST /talk\n(问题文本)
+activate FlaskApp
+
+FlaskApp -> QAEngine: answer_question(question)
+activate QAEngine
+
+QAEngine -> QAEngine: parse_question(question)
+QAEngine -> QAEngine: 解析意图、肌群、器械、难度
+
+alt 查询具体动作信息
+    QAEngine -> Neo4jDriver: query(Cypher查询)
+    activate Neo4jDriver
+    Neo4jDriver -> Neo4jDB: MATCH (e:Exercise)
+    activate Neo4jDB
+    Neo4jDB --> Neo4jDriver: 返回动作详情
+    deactivate Neo4jDB
+    Neo4jDriver --> QAEngine: 返回查询结果
+    deactivate Neo4jDriver
+    
+    QAEngine -> QAEngine: 格式化答案
+    QAEngine --> FlaskApp: neo4j_answer
+else 列出符合条件的动作
+    QAEngine -> QAEngine: 构建WHERE条件
+    QAEngine -> Neo4jDriver: query(Cypher查询)
+    activate Neo4jDriver
+    Neo4jDriver -> Neo4jDB: MATCH + WHERE查询
+    activate Neo4jDB
+    Neo4jDB --> Neo4jDriver: 返回动作列表
+    deactivate Neo4jDB
+    Neo4jDriver --> QAEngine: 返回查询结果
+    deactivate Neo4jDriver
+    
+    QAEngine -> QAEngine: 生成推荐列表
+    QAEngine --> FlaskApp: neo4j_answer
+end
+
+deactivate QAEngine
+
+FlaskApp -> FlaskApp: build_enhanced_prompt()\n(整合知识库答案)
+
+FlaskApp -> AIConnector: talk(enhanced_question)
+activate AIConnector
+
+AIConnector -> OpenAIAPI: chat.completions.create()\n(stream=True, enable_thinking=True)
+activate OpenAIAPI
+
+loop 流式接收响应
+    OpenAIAPI --> AIConnector: chunk (reasoning_content)
+    AIConnector -> AIConnector: 收集思考过程
+    OpenAIAPI --> AIConnector: chunk (content)
+    AIConnector -> AIConnector: 收集回答内容
+end
+
+OpenAIAPI --> AIConnector: usage_info
+deactivate OpenAIAPI
+
+AIConnector --> FlaskApp: {"code": 200, "reasoning": "...", "answer": "...", "usage": {...}}
+deactivate AIConnector
+
+FlaskApp --> Frontend: JSON响应
+deactivate FlaskApp
+Frontend --> User: 显示AI回答
+
+== 流式对话流程 (/talkStream) ==
+
+User -> Frontend: 输入健身问题
+Frontend -> FlaskApp: POST /talkStream\n(问题文本)
+activate FlaskApp
+
+FlaskApp -> QAEngine: answer_question(question)
+activate QAEngine
+
+QAEngine -> QAEngine: parse_question(question)
+QAEngine -> Neo4jDriver: query(Cypher查询)
+activate Neo4jDriver
+Neo4jDriver -> Neo4jDB: 执行图谱查询
+activate Neo4jDB
+Neo4jDB --> Neo4jDriver: 返回查询结果
+deactivate Neo4jDB
+Neo4jDriver --> QAEngine: 返回neo4j_answer
+deactivate Neo4jDriver
+QAEngine --> FlaskApp: neo4j_answer
+deactivate QAEngine
+
+FlaskApp -> FlaskApp: build_enhanced_prompt()\n(整合知识库答案)
+
+FlaskApp -> AIConnector: talkStream(enhanced_question)
+activate AIConnector
+
+AIConnector -> OpenAIAPI: chat.completions.create()\n(stream=True)
+activate OpenAIAPI
+
+loop 持续流式输出
+    OpenAIAPI --> AIConnector: chunk (content)
+    AIConnector -> Frontend: yield data: {type: 'content', data: '...'}\n(SSE格式)
+    Frontend --> User: 实时显示文字
+end
+
+OpenAIAPI --> AIConnector: [DONE]
+AIConnector -> Frontend: yield data: [DONE]
+deactivate OpenAIAPI
+deactivate AIConnector
+
+deactivate FlaskApp
+
+== 异常处理流程 ==
+
+alt 任何步骤发生异常
+    FlaskApp -> FlaskApp: catch Exception
+    FlaskApp --> Frontend: {"code": 500, "data": "AI 有点困了~", "msg": "对话失败"}
+    Frontend --> User: 显示错误提示
+end
+
+note right of QAEngine
+  问题解析包括：
+  1. 同义词匹配
+  2. 正则模板提取
+  3. 意图识别
+  4. 否定句处理
+end note
+
+note right of AIConnector
+  AI调用支持：
+  1. 思考模式(enable_thinking)
+  2. 流式输出
+  3. Token用量统计
+end note
+
+note right of Neo4jDriver
+  图谱查询支持：
+  1. 动作信息查询
+  2. 多条件筛选
+  3. 否定条件排除
+end note
+
+@enduml
