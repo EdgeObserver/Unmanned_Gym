@@ -20,7 +20,6 @@
 - [功能特性](#功能特性)
 - [项目结构](#项目结构)
 - [快速开始](#快速开始)
-- [数据库设计](#数据库设计)
 - [开发指南](#开发指南)
 - [API文档](#api文档)
 - [贡献指南](#贡献指南)
@@ -214,6 +213,16 @@ Unmanned_Gym/
 ├── database_migration_add_membership_end_time.sql  # 数据库迁移脚本
 └── pom.xml                     # Maven 父 POM
 ```
+
+## 📚 核心文档
+
+| 文档 | 说明 |
+|------|------|
+| [QUICK_START.md](QUICK_START.md) | ⚡ 快速开始指南（5分钟启动） |
+| [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md) | 🔧 环境变量配置详解 |
+| [DATABASE_DESIGN.md](DATABASE_DESIGN.md) | 💾 数据库设计文档 |
+| [SECURITY_GUIDE.md](SECURITY_GUIDE.md) | 🔐 安全配置指南 |
+| [.env.example](.env.example) | 📝 环境变量模板 |
 
 ## 🚀 快速开始
 
