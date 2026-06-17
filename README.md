@@ -596,22 +596,6 @@ Content-Type: application/json
 - 更新相关文档
 - 确保 CI/CD 检查通过
 
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 👥 团队成员
-
-- 项目负责人：[Your Name]
-- 后端开发：Backend Team
-- 前端开发：Frontend Team
-- AI 算法：AI Team
-
-## 📞 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- 💬 Issues: [GitHub Issues](https://github.com/your-username/Unmanned_Gym/issues)
 
 ## 🙏 致谢
 
